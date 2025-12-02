@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+  <meta charset="utf-8" />
+  <meta name="description" content="Server Rack 3D Model by ENDUP  Viewer - Clean and minimal server rack display" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+  <meta property="og:title" content="Server Rack 3D Model by ENDUP  Viewer" />
+  <meta property="og:description" content="View and interact with Server Rack 3D Model by ENDUP " />
+  <title>Server Rack 3D Viewer</title>
+  <link href="style.css" rel="stylesheet" />
+  <link rel="shortcut icon" type="image/png" href="icon.png" />
+  <script defer="" src="collector.js"></script>
+  <script src="animation.js"></script>
+  <script src="html.js"></script>
+  <script src="css.js"></script>
+  <script>
+    // Necessary hack for Redux. See: https://github.com/reduxjs/redux/pull/2910
+    window.process = {
+      env: {
+        NODE_ENV: 'production'
+      }
+    };
+  </script>
+  <script type="module" src="worker.js">
+
+  </script>
+  <script>
+    window.ga = window.ga || function () { (ga.q = ga.q || []).push(arguments) }; ga.l = +new Date;
+    ga('create', 'UA-169901325-1', { 'storage': 'none' });
+    ga('set', 'referrer', document.referrer.split('?')[0]);
+    ga('set', 'anonymizeIp', true);
+    ga('send', 'pageview');
+
+    // Override external AR prompt image with local version
+    function overrideArPrompt() {
+      const arPromptImg = document.querySelector('#ar-prompt img');
+      if (arPromptImg && arPromptImg.src.includes('modelviewer.dev')) {
+        // Remove AR prompt image override
+        arPromptImg.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check immediately and then periodically
+      overrideArPrompt();
+      setInterval(overrideArPrompt, 500);
+    });
+  </script>
+  <script async="" src="analytics.js"></script>
+  <!-- Model Viewer Script -->
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+    <style>
+        html, body {
+            width: 100vw;
+            height: 100lvh;
+            overflow: hidden;
+            background: #2d2d30;
+            position: relative;
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            align-items: center;
+            display: flex;
+            flex: 0 0 auto;
+            height: 50px;
+            justify-content: center;
+            padding: 0 20px;
+            background: #2d2d30;
+            border-bottom: 1px solid #404040;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+            text-align: center;
+        }
+
+        .header-links {
+            position: absolute;
+            right: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .linkedin-link {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #0077b5 0%, #005885 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .linkedin-link:hover {
+            background: linear-gradient(135deg, #005885 0%, #004070 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            height: calc(100vh - 50px);
+            overflow: hidden;
+        }
+
+        .model-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #323232;
+        }
+
+        model-viewer {
+            width: 100%;
+            height: 100%;
+            --progress-bar-color: #0066cc;
+        }
+
+        .progress-bar {
+            display: block;
+            width: 100%;
+            height: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+
+        .progress-bar.hide {
+            display: none;
+        }
+
+        .update-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #0066cc 0%, #0099ff 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333333;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 2147483647;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            opacity: 0;
+            transform: translateX(-50%) scale(0.9);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .notification-icon {
+            width: 20px;
+            height: 20px;
+            fill: #28a745;
+        }
+
+        .interaction-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            color: #ffffff;
+            padding: 20px 30px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 500;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: fadeInOut 3s ease-in-out forwards;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .interaction-text .main-text {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #0066cc, #0099ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .interaction-text .sub-text {
+            font-size: 14px;
+            color: #cccccc;
+            opacity: 0.8;
+        }
+
+        @media only screen and (max-width: 768px) {
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .header {
+                height: 45px;
+                padding: 0 15px;
+            }
+
+            .header-links {
+                right: 10px;
+            }
+
+            .linkedin-link {
+                font-size: 12px;
+                padding: 4px 8px;
+            }
+
+            .main-content {
+                height: calc(100vh - 45px);
+            }
+        }
+    </style>
+  </head>
+  <body>
+      <div class="app">
+          <header class="header">
+              <h1>Server Rack 3D Model by ENDUP </h1>
+              <div class="header-links">
+                  <a href="https://www.linkedin.com/in/mohammed-al-abyah-a85887238/" target="_blank" class="linkedin-link">
+                      LinkedIn
+                  </a>
+              </div>
+          </header>
+
+          <div class="main-content">
+              <div class="model-container">
+                  <div class="interaction-text" id="interaction-text">
+                      <div class="main-text">Drag to rotate</div>
+                      <div class="sub-text">Use mouse wheel to zoom</div>
+                  </div>
+
+                  <model-viewer
+                      id="model-viewer"
+                      src="server_rack.glb"
+                      camera-controls
+                      auto-rotate
+                      ar
+                      ar-modes="webxr scene-viewer"
+                      shadow-intensity="1"
+                      environment-image="neutral"
+                      exposure="1"
+                      shadow-softness="1"
+                      ar-scale="auto"
+                      tone-mapping="neutral"
+                      style="width: 100%; height: 100%;">
+                      <div slot="progress-bar" class="progress-bar">
+                          <div class="update-bar"></div>
+                      </div>
+                  </model-viewer>
+              </div>
+          </div>
+      </div>
+
+      <div id="notification" class="notification"></div>
+
+      <script>
+          const modelViewer = document.getElementById('model-viewer');
+          const notification = document.getElementById('notification');
+
+          // Progress bar functions
+          function showProgressBar() {
+              const progressBar = document.querySelector('.progress-bar');
+              const updateBar = document.querySelector('.update-bar');
+              if (progressBar && updateBar) {
+                  progressBar.classList.remove('hide');
+                  updateBar.style.width = '0%';
+
+                  // Simulate progress (model-viewer handles actual progress)
+                  let progress = 0;
+                  const interval = setInterval(() => {
+                      progress += Math.random() * 15;
+                      if (progress >= 90) {
+                          progress = 90; // Wait for actual load completion
+                      }
+                      updateBar.style.width = progress + '%';
+                  }, 100);
+
+                  // Clear interval when model loads
+                  modelViewer.addEventListener('load', () => {
+                      clearInterval(interval);
+                      updateBar.style.width = '100%';
+                      setTimeout(() => {
+                          hideProgressBar();
+                          showNotification('Server Rack model loaded successfully!');
+                      }, 500);
+                  }, { once: true });
+              }
+          }
+
+          function hideProgressBar() {
+              const progressBar = document.querySelector('.progress-bar');
+              if (progressBar) {
+                  setTimeout(() => {
+                      progressBar.classList.add('hide');
+                  }, 300);
+              }
+          }
+
+          function showNotification(message) {
+              notification.innerHTML = `<span class="notification-icon">✓</span>${message}`;
+              notification.classList.add('show');
+
+              setTimeout(() => {
+                  notification.classList.remove('show');
+              }, 3000);
+          }
+
+          function hideInteractionText() {
+              const text = document.getElementById('interaction-text');
+              if (text) {
+                  text.style.display = 'none';
+              }
+          }
+
+          // Hide text when interacting with the model
+          modelViewer.addEventListener('camera-change', () => {
+              hideInteractionText();
+          });
+
+          modelViewer.addEventListener('pointerdown', () => {
+              hideInteractionText();
+          });
+
+          // Initialize on page load
+          document.addEventListener('DOMContentLoaded', function() {
+              showNotification('Loading Server Rack model...');
+              showProgressBar();
+
+              // Hide instruction text after 5 seconds
+              setTimeout(() => {
+                  hideInteractionText();
+              }, 2000);
+          });
+
+          // Handle model load events
+          modelViewer.addEventListener('load', () => {
+              showNotification('Server Rack model loaded successfully!');
+          });
+
+          modelViewer.addEventListener('error', (error) => {
+              hideProgressBar();
+              showNotification('Error loading Server Rack model');
+          });
+      </script>
+  </body>
+</html>
