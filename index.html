@@ -1,0 +1,1937 @@
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+    <meta charset="utf-8" />
+    <meta name="description" content="3D Model Viewer By Endup - Clean and minimal 3D model display tool" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0" />
+    <meta property="og:title" content="3D Model Viewer By Endup - Clean and minimal 3D model display tool" />
+    <meta property="og:description" content="A simple tool to view glTF and glb files ✏️, and configure them to use the ﹤model-viewer﹥ 3D &amp; AR web component 🌐" />
+    <title>3D Model Viewer By Endup</title>
+    <link href="style.css" rel="stylesheet" />
+    <link rel="shortcut icon" type="image/png" href="icon.png" />
+    <script defer="" src="collector.js"></script>
+    <!-- Web animations for paper-dropdown -->
+    <script src="animation.js"></script>
+    <script src="html.js"></script>
+    <script src="css.js"></script>
+    <script>
+      // Necessary hack for Redux. See: https://github.com/reduxjs/redux/pull/2910
+      window.process = {
+        env: {
+          NODE_ENV: 'production'
+        }
+      };
+    </script>
+    <script type="module" src="worker.js">
+  
+    </script>
+    <script>
+      window.ga = window.ga || function () { (ga.q = ga.q || []).push(arguments) }; ga.l = +new Date;
+      ga('create', 'UA-169901325-1', { 'storage': 'none' });
+      ga('set', 'referrer', document.referrer.split('?')[0]);
+      ga('set', 'anonymizeIp', true);
+      ga('send', 'pageview');
+  
+    // Override external AR prompt image with local version
+    function overrideArPrompt() {
+      const arPromptImg = document.querySelector('#ar-prompt img');
+      if (arPromptImg && arPromptImg.src.includes('modelviewer.dev')) {
+        // Remove AR prompt image override
+        arPromptImg.style.display = 'none';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Check immediately and then periodically
+      overrideArPrompt();
+      setInterval(overrideArPrompt, 500);
+    });
+    </script>
+    <script async="" src="analytics.js"></script>
+    <!-- Model Viewer Script -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  
+      <style>
+          html, body {
+              width: 100vw;
+              height: 100lvh;
+              overflow: hidden;
+              background: #2d2d30;
+              position: relative;
+          }
+  
+          body {
+              margin: 0;
+              overflow: hidden;
+          }
+  
+          .app {
+              display: flex;
+              flex-direction: column;
+              height: 100vh;
+          }
+  
+          .header {
+              align-items: center;
+              display: flex;
+              flex: 0 0 auto;
+              height: 40px;
+              justify-content: center;
+              padding: 0 16px;
+              background: #2d2d30;
+              border-bottom: 1px solid #404040;
+              position: relative;
+              z-index: 10;
+          }
+  
+          .nav-links {
+              display: flex;
+              gap: 16px;
+              flex-wrap: wrap;
+              justify-content: center;
+              position: relative;
+              z-index: 2;
+          }
+  
+          .nav-link {
+              color: #cccccc;
+              text-decoration: none;
+              font-weight: 500;
+              font-size: 12px;
+              padding: 6px 12px;
+              border-radius: 4px;
+              transition: all 0.2s ease;
+              background: transparent;
+              border: 1px solid transparent;
+          }
+  
+          .nav-link:hover {
+              background: #505050;
+              color: #ffffff;
+              border-color: #606060;
+          }
+  
+          .header-controls {
+              display: flex;
+              gap: 8px;
+              margin-left: auto;
+          }
+  
+          .control-btn {
+              background: linear-gradient(135deg, #404040 0%, #454545 100%);
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 8px 16px;
+              border-radius: 6px;
+              font-size: 11px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+              position: relative;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          }
+
+          .control-btn::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+              transition: left 0.5s;
+          }
+
+          .control-btn:hover::before {
+              left: 100%;
+          }
+
+          .control-btn:hover {
+              background: linear-gradient(135deg, #505050 0%, #555555 100%);
+              color: #ffffff;
+              border-color: #777777;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          }
+
+          .control-btn:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          }
+  
+          .main-content {
+              flex: 1;
+              display: flex;
+              height: calc(100vh - 48px);
+              overflow: hidden;
+          }
+  
+          .model-container {
+              flex: 1;
+              position: relative;
+              width: 100%;
+              height: 100%;
+              background: #323232;
+          }
+  
+          .file-selection-container {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              pointer-events: none;
+              z-index: 10;
+          }
+  
+          .file-selection-area {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 12px;
+              padding: 20px;
+              background: linear-gradient(135deg, rgba(60, 60, 60, 0.9) 0%, rgba(50, 50, 50, 0.9) 100%);
+              border-radius: 12px;
+              border: 2px dashed rgba(100, 100, 100, 0.6);
+              transition: all 0.3s ease;
+              pointer-events: all;
+              backdrop-filter: blur(10px);
+              box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+              min-width: 250px;
+          }
+  
+          .file-selection-area:hover {
+              border-color: rgba(74, 144, 226, 0.8);
+              background: linear-gradient(135deg, rgba(80, 80, 80, 0.95) 0%, rgba(65, 65, 65, 0.95) 100%);
+              transform: translateY(-2px);
+              box-shadow: 0 12px 40px rgba(74, 144, 226, 0.2);
+          }
+  
+          .file-selection-area.drag-over {
+              border-color: rgba(0, 102, 204, 0.8);
+              background: linear-gradient(135deg, rgba(80, 80, 80, 0.95) 0%, rgba(65, 65, 65, 0.95) 100%);
+              transform: scale(1.02);
+          }
+  
+          .file-icon {
+              font-size: 32px;
+              opacity: 0.8;
+              margin-bottom: 8px;
+          }
+  
+          .select-file-btn {
+              background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+              color: #ffffff;
+              border: none;
+              padding: 14px 28px;
+              border-radius: 8px;
+              font-weight: 600;
+              cursor: pointer;
+              transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              font-size: 14px;
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+              position: relative;
+              overflow: hidden;
+          }
+  
+          .select-file-btn:hover {
+              background: linear-gradient(135deg, #357abd 0%, #2c5aa0 100%);
+              transform: translateY(-2px);
+              box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+          }
+  
+          .select-file-btn:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+          }
+  
+          .file-info {
+              color: #aaaaaa;
+              font-size: 12px;
+              font-style: italic;
+              text-align: center;
+              opacity: 0.8;
+          }
+  
+          model-viewer {
+              width: 100%;
+              height: 100%;
+              --progress-bar-color: #0066cc;
+          }
+  
+          .progress-bar {
+              display: block;
+              width: 100%;
+              height: 4px;
+              background: rgba(0, 0, 0, 0.2);
+              border-radius: 2px;
+              overflow: hidden;
+              position: absolute;
+              bottom: 0;
+              left: 0;
+          }
+  
+          .progress-bar.hide {
+              display: none;
+          }
+  
+          .update-bar {
+              height: 100%;
+              background: linear-gradient(90deg, #0066cc 0%, #0099ff 100%);
+              width: 0%;
+              transition: width 0.3s ease;
+              border-radius: 2px;
+          }
+  
+          .tool-panel {
+              background: #323232;
+              width: 300px;
+              min-width: 300px;
+              max-width: 300px;
+              border-left: 1px solid #404040;
+              padding: 16px;
+              overflow-y: auto;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          }
+  
+          .tool-section {
+              margin-bottom: 24px;
+              border-bottom: 1px solid #404040;
+              padding-bottom: 18px;
+              background: linear-gradient(135deg, rgba(50, 50, 50, 0.3) 0%, rgba(40, 40, 40, 0.3) 100%);
+              border-radius: 8px;
+              padding: 16px;
+              border: 1px solid rgba(255, 255, 255, 0.05);
+              position: relative;
+          }
+
+          .tool-section:last-child {
+              border-bottom: none;
+              margin-bottom: 0;
+          }
+  
+          .tool-title {
+              color: #ffffff;
+              font-size: 13px;
+              font-weight: 600;
+              margin: 0 0 10px 0;
+              text-transform: uppercase;
+              letter-spacing: 0.8px;
+              background: linear-gradient(90deg, #cccccc 0%, #ffffff 100%);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              background-clip: text;
+              padding-left: 8px;
+              border-left: 3px solid #0066cc;
+              padding-bottom: 2px;
+          }
+  
+          .tool-buttons {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 8px;
+              margin-bottom: 12px;
+          }
+
+          .tool-buttons-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 8px;
+              margin-bottom: 12px;
+              align-items: stretch;
+          }
+
+          .tool-buttons-grid .tool-btn {
+              flex: 1;
+              min-width: 0;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+          }
+  
+          .tool-btn {
+              background: linear-gradient(135deg, #404040 0%, #454545 100%);
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 10px 14px;
+              border-radius: 6px;
+              font-size: 12px;
+              font-weight: 500;
+              cursor: pointer;
+              transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              text-align: left;
+              position: relative;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              min-height: 40px;
+              justify-content: center;
+          }
+
+          .tool-btn::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+              transition: left 0.5s;
+          }
+
+          .tool-btn:hover::before {
+              left: 100%;
+          }
+
+          .tool-btn:hover {
+              background: linear-gradient(135deg, #505050 0%, #555555 100%);
+              color: #ffffff;
+              border-color: #777777;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          }
+
+          .tool-btn:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          }
+
+          .tool-btn.active {
+              background: linear-gradient(135deg, #0066cc 0%, #0077dd 100%);
+              color: #ffffff;
+              border-color: #0088ee;
+              box-shadow: 0 4px 12px rgba(0, 102, 204, 0.4);
+          }
+
+          .tool-btn.active::before {
+              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+          }
+
+          .tool-btn:focus {
+              outline: none;
+              box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.5);
+          }
+
+          .btn:focus {
+              outline: none;
+              box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.5);
+          }
+
+          .control-btn:focus {
+              outline: none;
+              box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.5);
+          }
+  
+          .control-label {
+              color: #cccccc;
+              font-size: 12px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              cursor: pointer;
+          }
+  
+          .control-label input[type="checkbox"] {
+              margin: 0;
+              width: 14px;
+              height: 14px;
+          }
+  
+          .control-label select {
+              background: #404040;
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 4px 8px;
+              border-radius: 3px;
+              font-size: 11px;
+          }
+  
+          .file-upload {
+              margin-bottom: 15px;
+          }
+  
+          .file-input {
+              display: none;
+          }
+  
+          .upload-btn {
+              background: #404040;
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 10px 15px;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 12px;
+              font-weight: 500;
+              transition: all 0.2s ease;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              width: 100%;
+              justify-content: center;
+          }
+  
+          .upload-btn:hover {
+              background: #505050;
+              color: #ffffff;
+              border-color: #666666;
+          }
+  
+          .model-select {
+              width: 100%;
+              background: #404040;
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 8px;
+              border-radius: 4px;
+              font-size: 11px;
+              margin-bottom: 10px;
+          }
+  
+          .model-select:focus {
+              outline: none;
+              border-color: #666666;
+              background: #454545;
+          }
+  
+          .options-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 8px;
+              margin-bottom: 10px;
+          }
+  
+          .option-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 8px;
+              background: rgba(60, 60, 60, 0.5);
+              border-radius: 6px;
+              transition: all 0.2s ease;
+              cursor: pointer;
+          }
+
+          .option-item:hover {
+              background: rgba(80, 80, 80, 0.7);
+              transform: translateX(2px);
+          }
+  
+          .option-item input[type="checkbox"] {
+              margin: 0;
+              width: 12px;
+              height: 12px;
+          }
+  
+          .option-item label {
+              font-size: 11px;
+              cursor: pointer;
+              margin: 0;
+              color: #cccccc;
+          }
+  
+          .btn-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 8px;
+              margin-top: 8px;
+              align-items: stretch;
+          }
+
+          .btn-grid .btn {
+              flex: 1;
+              min-width: 0;
+          }
+  
+          .btn {
+              background: linear-gradient(135deg, #404040 0%, #454545 100%);
+              color: #cccccc;
+              border: 1px solid #555555;
+              padding: 10px 12px;
+              border-radius: 6px;
+              cursor: pointer;
+              font-size: 11px;
+              font-weight: 500;
+              transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+              text-align: center;
+              position: relative;
+              overflow: hidden;
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+              min-height: 36px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+          }
+
+          .btn::before {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: -100%;
+              width: 100%;
+              height: 100%;
+              background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+              transition: left 0.5s;
+          }
+
+          .btn:hover::before {
+              left: 100%;
+          }
+
+          .btn:hover {
+              background: linear-gradient(135deg, #505050 0%, #555555 100%);
+              color: #ffffff;
+              border-color: #777777;
+              transform: translateY(-1px);
+              box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+          }
+
+          .btn:active {
+              transform: translateY(0);
+              box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+          }
+
+          .btn.primary {
+              background: linear-gradient(135deg, #0066cc 0%, #0077dd 100%);
+              color: #ffffff;
+              border-color: #0088ee;
+              box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
+          }
+
+          .btn.primary:hover {
+              background: linear-gradient(135deg, #0077dd 0%, #0088ee 100%);
+              box-shadow: 0 6px 16px rgba(0, 102, 204, 0.4);
+          }
+  
+          .notification {
+              position: fixed;
+              bottom: 32px;
+              left: 50%;
+              transform: translateX(-50%);
+              background: #333333;
+              color: white;
+              padding: 16px 24px;
+              border-radius: 12px;
+              font-size: 15px;
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              z-index: 2147483647;
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              opacity: 0;
+              transform: translateX(-50%) scale(0.9);
+              transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+              pointer-events: none;
+          }
+  
+          .notification.show {
+              opacity: 1;
+              transform: translateX(-50%) scale(1);
+          }
+  
+        .notification-icon {
+            width: 20px;
+            height: 20px;
+            fill: #28a745;
+        }
+
+        .transform-controls {
+            margin-top: 16px;
+        }
+
+        .transform-values {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+
+        .transform-values label {
+            color: #cccccc;
+            font-size: 11px;
+            min-width: 60px;
+            font-weight: 500;
+        }
+
+        .transform-values input {
+            background: #404040;
+            color: #cccccc;
+            border: 1px solid #555555;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 11px;
+            width: 50px;
+            text-align: center;
+        }
+
+        .transform-values input:focus {
+            outline: none;
+            border-color: #666666;
+            background: #454545;
+        }
+
+        input[type="range"] {
+            width: 100px;
+            height: 4px;
+            background: #404040;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #0066cc;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #0066cc;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .control-label span {
+            font-size: 10px;
+            color: #aaaaaa;
+            margin-left: 8px;
+            min-width: 30px;
+            display: inline-block;
+        }
+
+        .export-controls, .model-controls, .lighting-controls, .camera-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .wide-select {
+            width: 100%;
+            background: #404040;
+            color: #cccccc;
+            border: 1px solid #555555;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        .wide-select:focus {
+            outline: none;
+            border-color: #666666;
+            background: #454545;
+        }
+
+        .animation-timeline {
+            margin-top: 12px;
+        }
+
+        .animation-timeline input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #404040;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .animation-timeline input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: #0066cc;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 4px;
+            font-size: 10px;
+            color: #888888;
+        }
+
+        .transform-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .transform-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .transform-label {
+            color: #cccccc;
+            font-size: 11px;
+            font-weight: 500;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .transform-inputs {
+            display: flex;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .transform-input {
+            background: #404040;
+            color: #cccccc;
+            border: 1px solid #555555;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            width: 45px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .transform-input:focus {
+            outline: none;
+            border-color: #666666;
+            background: #454545;
+        }
+
+        .material-controls, .animation-controls, .ar-controls, .advanced-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .compact-select {
+            background: #404040;
+            color: #cccccc;
+            border: 1px solid #555555;
+            padding: 4px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            min-width: 70px;
+        }
+
+        .compact-select:focus {
+            outline: none;
+            border-color: #666666;
+            background: #454545;
+        }
+
+        .control-label.compact {
+            margin-bottom: 6px;
+        }
+
+        .control-label.compact select {
+            margin-top: 4px;
+        }
+
+        .compact-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .compact-controls .control-label {
+            margin-bottom: 4px;
+        }
+  
+          @media only screen and (max-width: 768px) {
+              .header {
+                  height: auto;
+                  padding: 8px 12px;
+                  flex-direction: column;
+                  gap: 8px;
+              }
+  
+              .nav-links {
+                  gap: 6px;
+                  justify-content: center;
+                  order: 2;
+              }
+  
+              .header-controls {
+                  order: 1;
+                  justify-content: center;
+                  gap: 6px;
+              }
+  
+              .nav-link {
+                  font-size: 10px;
+                  padding: 4px 6px;
+              }
+  
+              .control-btn {
+                  font-size: 10px;
+                  padding: 4px 8px;
+              }
+  
+              .tool-panel {
+                  width: 280px;
+                  min-width: 280px;
+                  max-width: 280px;
+                  padding: 12px;
+              }
+  
+              .tool-title {
+                  font-size: 13px;
+              }
+  
+              .tool-btn {
+                  font-size: 11px;
+                  padding: 6px 10px;
+              }
+  
+              .main-content {
+                  height: calc(100vh - 70px);
+              }
+  
+              .file-selection-area {
+                  min-width: 220px;
+                  padding: 16px;
+                  margin: 20px;
+              }
+  
+              .select-file-btn {
+                  padding: 12px 20px;
+                  font-size: 13px;
+              }
+  
+              .file-icon {
+                  font-size: 24px;
+              }
+  
+            .file-info {
+                font-size: 11px;
+            }
+
+            .transform-inputs {
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .transform-input {
+                width: 100%;
+            }
+
+            .checkbox-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tool-buttons-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .btn-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+
+            .tool-section {
+                padding: 12px;
+                margin-bottom: 20px;
+            }
+
+            .control-btn {
+                padding: 6px 12px;
+                font-size: 10px;
+            }
+        }
+      </style>
+  </head>
+  <body>
+      <input type="file" id="file-input" accept=".gltf,.glb,.obj,.fbx,.dae,.3ds,.ply,.stl" style="display: none;" multiple />
+
+      <div class="app">
+          <header class="header">
+              <nav class="nav-links">
+                  <a href="https://uml.q5.qa" target="_blank" class="nav-link">Text to UML</a>
+                  <a href="https://cv.q5.qa/" target="_blank" class="nav-link">Portfolio</a>
+                  <a href="https://q5.qa/" target="_blank" class="nav-link">Social Media</a>
+                  <a href="https://3dtest.q5.qa" target="_blank" class="nav-link">3D Test</a>
+                  <a href="https://cvb.q5.qa" target="_blank" class="nav-link">CV Builder</a>
+                  <a href="https://cert.q5.qa" target="_blank" class="nav-link">PDF Viewer</a>
+                  <a href="https://task.q5.qa/" target="_blank" class="nav-link">Task Manager</a>
+                  <a href="https://fastviewer.q5.qa/editor" target="_blank" class="nav-link">UML Editor</a>
+              </nav>
+              <div class="header-controls">
+                  <button class="control-btn" onclick="exportModel()">Export</button>
+                  <button class="control-btn" onclick="resetView()">Reset View</button>
+              </div>
+          </header>
+  
+          <div class="main-content">
+              <div class="model-container">
+                  <model-viewer
+                      id="model-viewer"
+                      src=""
+                      camera-controls
+                      auto-rotate
+                      ar
+                      ar-modes="webxr scene-viewer"
+                      shadow-intensity="1"
+                      environment-image="neutral"
+                      exposure="1"
+                    shadow-softness="1"
+                    ar-scale="auto"
+                    tone-mapping="neutral"
+                    style="width: 100%; height: 100%;">
+                    <div slot="progress-bar" class="progress-bar">
+                        <div class="update-bar"></div>
+                    </div>
+                    <button slot="ar-button" id="ar-button">View in your space</button>
+                    <div id="ar-prompt"></div>
+                </model-viewer>
+  
+                  <div class="file-selection-container">
+                      <div class="file-selection-area">
+                          <div class="file-icon">📁</div>
+                          <button class="select-file-btn" onclick="document.getElementById('file-input').click()">
+                              📤 Select 3D Model File
+                          </button>
+                          <div class="file-info">Click to browse files or drag & drop</div>
+                      </div>
+                  </div>
+              </div>
+  
+                <div class="tool-panel">
+                    <!-- 1. Model Management -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">📁 Model Management</h3>
+                        <select id="preset-models" class="model-select">
+                            <option value="">Choose a preset model...</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/Astronaut.glb">Astronaut</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/Horse.glb">Horse</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/RobotExpressive.glb">Robot</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/DamagedHelmet/glTF/DamagedHelmet.gltf">Damaged Helmet</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/Lantern/glTF/Lantern.gltf">Lantern</option>
+                            <option value="https://modelviewer.dev/shared-assets/models/glTF-Sample-Models/2.0/WaterBottle/glTF/WaterBottle.gltf">Water Bottle</option>
+                        </select>
+                        <div class="tool-buttons">
+                            <button class="tool-btn" onclick="loadSelectedModel()">
+                                <span class="tool-icon">📥</span>
+                                Load Preset
+                            </button>
+                            <button class="tool-btn" onclick="clearModel()">
+                                <span class="tool-icon">🗑️</span>
+                                Clear Model
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Basic Display Controls -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">👁️ Display Controls</h3>
+                        <div class="options-grid">
+                            <label class="control-label">
+                                <input type="checkbox" id="auto-rotate" checked onchange="toggleAutoRotate()">
+                                Auto Rotate
+                            </label>
+                            <label class="control-label">
+                                <input type="checkbox" id="camera-controls" checked onchange="toggleCameraControls()">
+                                Camera Controls
+                            </label>
+                            <label class="control-label">
+                                <input type="checkbox" id="shadows" checked onchange="toggleShadows()">
+                                Shadows
+                            </label>
+                            <label class="control-label">
+                                <input type="checkbox" id="ar-mode" checked onchange="toggleAR()">
+                                AR Mode
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- 3. Transform Tools -->
+                    <div class="tool-section" id="transform-tools">
+                        <h3 class="tool-title">🔧 Transform Tools</h3>
+                        <div class="tool-buttons-grid">
+                            <button class="tool-btn active" onclick="selectTool('move')">
+                                <span class="tool-icon">↔</span>
+                                Move
+                            </button>
+                            <button class="tool-btn" onclick="selectTool('rotate')">
+                                <span class="tool-icon">🔄</span>
+                                Rotate
+                            </button>
+                            <button class="tool-btn" onclick="selectTool('scale')">
+                                <span class="tool-icon">📏</span>
+                                Scale
+                            </button>
+                            <button class="tool-btn" onclick="resetTransform()">
+                                <span class="tool-icon">🔄</span>
+                                Reset All
+                            </button>
+                        </div>
+                        <div class="transform-controls">
+                            <div class="transform-row">
+                                <label class="transform-label">Position:</label>
+                                <div class="transform-inputs">
+                                    <input type="number" id="pos-x" step="0.01" placeholder="X" class="transform-input">
+                                    <input type="number" id="pos-y" step="0.01" placeholder="Y" class="transform-input">
+                                    <input type="number" id="pos-z" step="0.01" placeholder="Z" class="transform-input">
+                                </div>
+                            </div>
+                            <div class="transform-row">
+                                <label class="transform-label">Rotation:</label>
+                                <div class="transform-inputs">
+                                    <input type="number" id="rot-x" step="0.01" placeholder="X" class="transform-input">
+                                    <input type="number" id="rot-y" step="0.01" placeholder="Y" class="transform-input">
+                                    <input type="number" id="rot-z" step="0.01" placeholder="Z" class="transform-input">
+                                </div>
+                            </div>
+                            <div class="transform-row">
+                                <label class="transform-label">Scale:</label>
+                                <div class="transform-inputs">
+                                    <input type="number" id="scale-x" step="0.01" value="1" placeholder="X" class="transform-input">
+                                    <input type="number" id="scale-y" step="0.01" value="1" placeholder="Y" class="transform-input">
+                                    <input type="number" id="scale-z" step="0.01" value="1" placeholder="Z" class="transform-input">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Material Controls -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">🎨 Material Controls</h3>
+                        <div class="material-controls">
+                            <div class="slider-group">
+                                <label class="control-label">
+                                    Metalness:
+                                    <input type="range" id="metalness" min="0" max="1" value="0" step="0.01">
+                                    <span id="metalness-value">0.00</span>
+                                </label>
+                                <label class="control-label">
+                                    Roughness:
+                                    <input type="range" id="roughness" min="0" max="1" value="0.5" step="0.01">
+                                    <span id="roughness-value">0.50</span>
+                                </label>
+                                <label class="control-label">
+                                    Opacity:
+                                    <input type="range" id="opacity" min="0" max="1" value="1" step="0.01">
+                                    <span id="opacity-value">1.00</span>
+                                </label>
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="control-label">
+                                    <input type="checkbox" id="double-sided">
+                                    Double Sided
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="alpha-test">
+                                    Alpha Test
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="transparent">
+                                    Transparent
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="wireframe-mat">
+                                    Wireframe
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Animation Controls -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">🎬 Animation Controls</h3>
+                        <div class="tool-buttons-grid">
+                            <button class="tool-btn" onclick="playAnimation()">
+                                <span class="tool-icon">▶</span>
+                                Play
+                            </button>
+                            <button class="tool-btn" onclick="pauseAnimation()">
+                                <span class="tool-icon">⏸</span>
+                                Pause
+                            </button>
+                            <button class="tool-btn" onclick="stopAnimation()">
+                                <span class="tool-icon">⏹</span>
+                                Stop
+                            </button>
+                            <button class="tool-btn" onclick="addHotspot()">
+                                <span class="tool-icon">📍</span>
+                                Add Hotspot
+                            </button>
+                        </div>
+                        <div class="animation-controls">
+                            <div class="animation-timeline">
+                                <input type="range" id="timeline" min="0" max="100" value="0" step="1">
+                                <div class="timeline-labels">
+                                    <span>0:00</span>
+                                    <span id="current-time">0:00</span>
+                                    <span id="total-time">0:00</span>
+                                </div>
+                            </div>
+                            <div class="slider-group">
+                                <label class="control-label">
+                                    Playback Speed:
+                                    <input type="range" id="playback-speed" min="0.1" max="3" value="1" step="0.1">
+                                    <span id="speed-value">1.0x</span>
+                                </label>
+                            </div>
+                            <div class="checkbox-grid">
+                                <label class="control-label">
+                                    <input type="checkbox" id="animation-loop">
+                                    Loop Animation
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="reverse-playback">
+                                    Reverse
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="ping-pong">
+                                    Ping Pong
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="auto-play">
+                                    Auto Play
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. AR & Rendering -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">📱 AR & Rendering</h3>
+                        <div class="ar-controls">
+                            <div class="checkbox-grid">
+                                <label class="control-label">
+                                    <input type="checkbox" id="ar-button" checked>
+                                    Show AR Button
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="ar-prompt" checked>
+                                    Show AR Prompt
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="ios-ar">
+                                    iOS AR
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="android-ar">
+                                    Android AR
+                                </label>
+                            </div>
+                            <div class="control-group">
+                                <label class="control-label">
+                                    AR Mode:
+                                    <select id="ar-mode" class="wide-select">
+                                        <option value="webxr scene-viewer" selected>Scene Viewer</option>
+                                        <option value="webxr quick-look">Quick Look</option>
+                                        <option value="webxr">WebXR Only</option>
+                                    </select>
+                                </label>
+                                <label class="control-label">
+                                    Tone Mapping:
+                                    <select id="tonemapping" class="wide-select">
+                                        <option value="neutral" selected>Neutral</option>
+                                        <option value="legacy">Legacy</option>
+                                        <option value="aces">ACES</option>
+                                        <option value="agx">AgX</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <div class="tool-buttons-grid">
+                                <button class="tool-btn" onclick="deployMobile()">
+                                    <span class="tool-icon">📱</span>
+                                    Deploy Mobile
+                                </button>
+                                <button class="tool-btn" onclick="testAR()">
+                                    <span class="tool-icon">🧪</span>
+                                    Test AR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 7. Advanced Settings -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">⚙️ Advanced Settings</h3>
+                        <div class="advanced-controls">
+                            <div class="checkbox-grid">
+                                <label class="control-label">
+                                    <input type="checkbox" id="shadow-intensity">
+                                    Shadow Intensity
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="progress-bar" checked>
+                                    Progress Bar
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="interaction-prompt">
+                                    Interaction Prompt
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="debug-mode">
+                                    Debug Mode
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="performance-monitor">
+                                    Performance Monitor
+                                </label>
+                                <label class="control-label">
+                                    <input type="checkbox" id="stats-display">
+                                    Stats Display
+                                </label>
+                            </div>
+                            <div class="slider-group">
+                                <label class="control-label">
+                                    Exposure:
+                                    <input type="range" id="exposure" min="-2" max="2" value="1" step="0.1">
+                                    <span id="exposure-value">1.0</span>
+                                </label>
+                                <label class="control-label">
+                                    Gamma:
+                                    <input type="range" id="gamma" min="0.5" max="2.5" value="1" step="0.1">
+                                    <span id="gamma-value">1.0</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 8. Utility Tools -->
+                    <div class="tool-section">
+                        <h3 class="tool-title">🛠️ Utility Tools</h3>
+                        <div class="btn-grid">
+                            <button class="btn" onclick="captureScreenshot()">📸 Screenshot</button>
+                            <button class="btn" onclick="exportModel()">📤 Export</button>
+                            <button class="btn" onclick="toggleFullscreen()">🔍 Fullscreen</button>
+                            <button class="btn" onclick="showModelInfo()">ℹ️ Info</button>
+                        </div>
+                    </div>
+                </div>
+          </div>
+      </div>
+  
+      <div id="notification" class="notification"></div>
+  
+      <script>
+          const modelViewer = document.getElementById('model-viewer');
+          const fileInput = document.getElementById('file-input');
+          const presetSelect = document.getElementById('preset-models');
+          const notification = document.getElementById('notification');
+  
+          // File upload handling
+          fileInput.addEventListener('change', function(e) {
+              const file = e.target.files[0];
+              if (file) {
+                  const url = URL.createObjectURL(file);
+                  modelViewer.src = url;
+                  showNotification(`Loading: ${file.name}`);
+                  showProgressBar();
+              }
+          });
+  
+          // Load preset model
+          function loadSelectedModel() {
+              const selectedValue = presetSelect.value;
+              if (selectedValue) {
+                  modelViewer.src = selectedValue;
+                  showNotification('Loading model...');
+                  showProgressBar();
+              } else {
+                  showNotification('Please select a model first');
+              }
+          }
+  
+          // Progress bar functions
+          function showProgressBar() {
+              const progressBar = document.querySelector('.progress-bar');
+              const updateBar = document.querySelector('.update-bar');
+              if (progressBar && updateBar) {
+                  progressBar.classList.remove('hide');
+                  updateBar.style.width = '0%';
+  
+                  // Simulate progress (model-viewer handles actual progress)
+                  let progress = 0;
+                  const interval = setInterval(() => {
+                      progress += Math.random() * 15;
+                      if (progress >= 90) {
+                          progress = 90; // Wait for actual load completion
+                      }
+                      updateBar.style.width = progress + '%';
+                  }, 100);
+  
+                  // Clear interval when model loads
+                  modelViewer.addEventListener('load', () => {
+                      clearInterval(interval);
+                      updateBar.style.width = '100%';
+                      setTimeout(() => {
+                          hideProgressBar();
+                          updateFileSelectionVisibility();
+                      }, 500);
+                  }, { once: true });
+              }
+          }
+  
+          function hideProgressBar() {
+              const progressBar = document.querySelector('.progress-bar');
+              if (progressBar) {
+                  setTimeout(() => {
+                      progressBar.classList.add('hide');
+                  }, 300);
+              }
+          }
+  
+          // Update file selection area visibility
+          function updateFileSelectionVisibility() {
+              const fileSelectionContainer = document.querySelector('.file-selection-container');
+              if (modelViewer.src) {
+                  fileSelectionContainer.style.display = 'none';
+              } else {
+                  fileSelectionContainer.style.display = 'flex';
+              }
+          }
+  
+          // Control functions
+          function toggleAutoRotate() {
+              const checkbox = document.getElementById('auto-rotate');
+              if (checkbox.checked) {
+                  modelViewer.setAttribute('auto-rotate', '');
+              } else {
+                  modelViewer.removeAttribute('auto-rotate');
+              }
+              showNotification('Auto rotate ' + (checkbox.checked ? 'enabled' : 'disabled'));
+          }
+
+          function toggleCameraControls() {
+              const checkbox = document.getElementById('camera-controls');
+              if (checkbox.checked) {
+                  modelViewer.setAttribute('camera-controls', '');
+              } else {
+                  modelViewer.removeAttribute('camera-controls');
+              }
+              showNotification('Camera controls ' + (checkbox.checked ? 'enabled' : 'disabled'));
+          }
+
+          function toggleShadows() {
+              const checkbox = document.getElementById('shadows');
+              modelViewer.setAttribute('shadow-intensity', checkbox.checked ? '1' : '0');
+              showNotification('Shadows ' + (checkbox.checked ? 'enabled' : 'disabled'));
+          }
+
+          function toggleAR() {
+              const checkbox = document.getElementById('ar-mode');
+              if (checkbox.checked) {
+                  modelViewer.setAttribute('ar', '');
+                  modelViewer.setAttribute('ar-modes', 'webxr scene-viewer');
+              } else {
+                  modelViewer.removeAttribute('ar');
+                  modelViewer.removeAttribute('ar-modes');
+              }
+              showNotification('AR mode ' + (checkbox.checked ? 'enabled' : 'disabled'));
+          }
+  
+          function resetView() {
+              modelViewer.cameraTarget = 'auto';
+              modelViewer.cameraOrbit = '0deg 75deg 105%';
+              showNotification('View reset to default');
+          }
+  
+          function captureScreenshot() {
+              showNotification('Screenshot feature coming soon!');
+          }
+  
+          function exportModel() {
+              showNotification('Export feature coming soon!');
+          }
+  
+          function toggleFullscreen() {
+              if (!document.fullscreenElement) {
+                  document.documentElement.requestFullscreen();
+                  showNotification('Entered fullscreen mode');
+              } else {
+                  document.exitFullscreen();
+                  showNotification('Exited fullscreen mode');
+              }
+          }
+  
+          function showModelInfo() {
+              const info = {
+                  src: modelViewer.src || 'No model loaded',
+                  dimensions: modelViewer.getDimensions ? 'Available' : 'Not available',
+                  materials: 'Information not available'
+              };
+  
+              alert(`Model Information:
+  Source: ${info.src}
+  Dimensions: ${info.dimensions}
+  Materials: ${info.materials}`);
+          }
+  
+          function clearModel() {
+              modelViewer.src = '';
+              hideProgressBar();
+              showNotification('Model cleared');
+              updateFileSelectionVisibility();
+          }
+
+          function selectTool(tool) {
+              // Remove active class from all tool buttons in transform section only
+              document.querySelectorAll('#transform-tools .tool-btn').forEach(btn => btn.classList.remove('active'));
+
+              // Add active class to selected tool
+              event.target.closest('.tool-btn').classList.add('active');
+
+              showNotification(tool.charAt(0).toUpperCase() + tool.slice(1) + ' tool selected');
+          }
+
+          function resetTransform() {
+              // Reset all transform inputs to default values
+              const inputs = ['pos-x', 'pos-y', 'pos-z', 'rot-x', 'rot-y', 'rot-z'];
+              inputs.forEach(id => {
+                  const element = document.getElementById(id);
+                  if (element) element.value = '';
+              });
+
+              // Reset scale to 1
+              ['scale-x', 'scale-y', 'scale-z'].forEach(id => {
+                  const element = document.getElementById(id);
+                  if (element) element.value = '1';
+              });
+
+              // Reset model-viewer transform if possible
+              if (modelViewer && modelViewer.resetScale) {
+                  modelViewer.resetScale();
+              }
+
+              showNotification('Transform reset to default values');
+          }
+
+          function playAnimation() {
+              if (modelViewer && modelViewer.play) {
+                  modelViewer.play();
+                  showNotification('Animation started playing');
+              } else {
+                  showNotification('No animation available in this model');
+              }
+          }
+
+          function pauseAnimation() {
+              if (modelViewer && modelViewer.pause) {
+                  modelViewer.pause();
+                  showNotification('Animation paused');
+              } else {
+                  showNotification('No animation available in this model');
+              }
+          }
+
+          function stopAnimation() {
+              if (modelViewer && modelViewer.pause) {
+                  modelViewer.pause();
+                  // Reset animation time if possible
+                  if (modelViewer.currentTime !== undefined) {
+                      modelViewer.currentTime = 0;
+                  }
+                  showNotification('Animation stopped');
+              } else {
+                  showNotification('No animation available in this model');
+              }
+          }
+
+          function addHotspot() {
+              // This would require more complex implementation
+              // For now, just show a notification
+              showNotification('Hotspot feature - coming soon!');
+          }
+
+          function deployMobile() {
+              // Generate mobile-friendly version or show QR code
+              const currentUrl = window.location.href;
+              showNotification('Mobile deployment - URL: ' + currentUrl);
+              // Could implement QR code generation here
+          }
+
+          function testAR() {
+              // Test AR functionality
+              if (modelViewer && modelViewer.ar) {
+                  showNotification('AR test initiated - look for AR button');
+                  // Could trigger AR mode programmatically
+                  modelViewer.enterAR();
+              } else {
+                  showNotification('AR not available - enable AR mode first');
+              }
+          }
+
+          function showNotification(message) {
+              notification.innerHTML = `<span class="notification-icon">✓</span>${message}`;
+              notification.classList.add('show');
+
+              setTimeout(() => {
+                  notification.classList.remove('show');
+              }, 3000);
+          }
+  
+          // Drag and drop functionality
+          function setupDragAndDrop() {
+              const fileSelectionArea = document.querySelector('.file-selection-area');
+              const fileSelectionContainer = document.querySelector('.file-selection-container');
+  
+              if (fileSelectionArea && fileSelectionContainer) {
+                  // Add drag and drop visual feedback
+                  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                      fileSelectionArea.addEventListener(eventName, preventDefaults, false);
+                      fileSelectionContainer.addEventListener(eventName, preventDefaults, false);
+                  });
+  
+                  ['dragenter', 'dragover'].forEach(eventName => {
+                      fileSelectionArea.addEventListener(eventName, highlight, false);
+                  });
+  
+                  ['dragleave', 'drop'].forEach(eventName => {
+                      fileSelectionArea.addEventListener(eventName, unhighlight, false);
+                  });
+  
+                  // Handle file drop
+                  fileSelectionArea.addEventListener('drop', handleDrop, false);
+  
+                  function preventDefaults(e) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                  }
+  
+                  function highlight() {
+                      fileSelectionArea.classList.add('drag-over');
+                  }
+  
+                  function unhighlight() {
+                      fileSelectionArea.classList.remove('drag-over');
+                  }
+  
+                  function handleDrop(e) {
+                      const dt = e.dataTransfer;
+                      const files = dt.files;
+  
+                      if (files.length > 0) {
+                          const file = files[0];
+                          if (file.name.toLowerCase().endsWith('.gltf') ||
+                              file.name.toLowerCase().endsWith('.glb') ||
+                              file.name.toLowerCase().endsWith('.obj') ||
+                              file.name.toLowerCase().endsWith('.fbx') ||
+                              file.name.toLowerCase().endsWith('.dae') ||
+                              file.name.toLowerCase().endsWith('.3ds') ||
+                              file.name.toLowerCase().endsWith('.ply') ||
+                              file.name.toLowerCase().endsWith('.stl')) {
+                              const url = URL.createObjectURL(file);
+                              modelViewer.src = url;
+                              showNotification(`Loading: ${file.name}`);
+                              showProgressBar();
+                          } else {
+                              showNotification('Please select a valid 3D model file');
+                          }
+                      }
+                  }
+              }
+          }
+  
+          // Initialize UI state
+          document.addEventListener('DOMContentLoaded', function() {
+              setupDragAndDrop();
+              setupSliderValues();
+              setupTransformInputs();
+              setupControlEventListeners();
+              updateFileSelectionVisibility();
+              showNotification('3D Model Viewer Ready!');
+          });
+
+          function setupControlEventListeners() {
+              // AR Controls
+              const arButtonCheckbox = document.getElementById('ar-button');
+              const arPromptCheckbox = document.getElementById('ar-prompt');
+              const iosArCheckbox = document.getElementById('ios-ar');
+              const androidArCheckbox = document.getElementById('android-ar');
+              const arModeSelect = document.getElementById('ar-mode');
+
+              if (arButtonCheckbox) {
+                  arButtonCheckbox.addEventListener('change', function() {
+                      const arButton = modelViewer.querySelector('[slot="ar-button"]');
+                      if (arButton) {
+                          arButton.style.display = this.checked ? 'block' : 'none';
+                      }
+                  });
+              }
+
+              if (arPromptCheckbox) {
+                  arPromptCheckbox.addEventListener('change', function() {
+                      const arPrompt = modelViewer.querySelector('#ar-prompt');
+                      if (arPrompt) {
+                          arPrompt.style.display = this.checked ? 'block' : 'none';
+                      }
+                  });
+              }
+
+              if (arModeSelect) {
+                  arModeSelect.addEventListener('change', function() {
+                      if (modelViewer.hasAttribute('ar')) {
+                          modelViewer.setAttribute('ar-modes', this.value);
+                      }
+                  });
+              }
+
+              const tonemappingSelect = document.getElementById('tonemapping');
+              if (tonemappingSelect) {
+                  tonemappingSelect.addEventListener('change', function() {
+                      modelViewer.setAttribute('tone-mapping', this.value);
+                      showNotification('Tone mapping changed to ' + this.value);
+                  });
+              }
+
+              // Animation controls
+              const animationLoopCheckbox = document.getElementById('animation-loop');
+              const autoPlayCheckbox = document.getElementById('auto-play');
+
+              if (animationLoopCheckbox) {
+                  animationLoopCheckbox.addEventListener('change', function() {
+                      // Animation loop functionality would be implemented here
+                      showNotification('Animation loop ' + (this.checked ? 'enabled' : 'disabled'));
+                  });
+              }
+
+              if (autoPlayCheckbox) {
+                  autoPlayCheckbox.addEventListener('change', function() {
+                      // Auto-play functionality would be implemented here
+                      showNotification('Auto play ' + (this.checked ? 'enabled' : 'disabled'));
+                  });
+              }
+
+              // Material controls
+              const doubleSidedCheckbox = document.getElementById('double-sided');
+              const alphaTestCheckbox = document.getElementById('alpha-test');
+              const transparentCheckbox = document.getElementById('transparent');
+              const wireframeCheckbox = document.getElementById('wireframe-mat');
+
+              [doubleSidedCheckbox, alphaTestCheckbox, transparentCheckbox, wireframeCheckbox].forEach(checkbox => {
+                  if (checkbox) {
+                      checkbox.addEventListener('change', function() {
+                          const property = this.id.replace('-mat', '').replace('-', '');
+                          updateMaterialProperty(property, this.checked);
+                      });
+                  }
+              });
+
+              // Advanced settings
+              const checkboxes = [
+                  'shadow-intensity', 'progress-bar', 'interaction-prompt',
+                  'debug-mode', 'performance-monitor', 'stats-display'
+              ];
+
+              checkboxes.forEach(id => {
+                  const checkbox = document.getElementById(id);
+                  if (checkbox) {
+                      checkbox.addEventListener('change', function() {
+                          handleAdvancedSetting(id, this.checked);
+                      });
+                  }
+              });
+          }
+
+          function handleAdvancedSetting(setting, enabled) {
+              const settingNames = {
+                  'shadow-intensity': 'Shadow Intensity',
+                  'progress-bar': 'Progress Bar',
+                  'interaction-prompt': 'Interaction Prompt',
+                  'debug-mode': 'Debug Mode',
+                  'performance-monitor': 'Performance Monitor',
+                  'stats-display': 'Stats Display'
+              };
+
+              showNotification(`${settingNames[setting] || setting} ${enabled ? 'enabled' : 'disabled'}`);
+
+              // Implement actual functionality based on setting
+              switch(setting) {
+                  case 'shadow-intensity':
+                      modelViewer.setAttribute('shadow-intensity', enabled ? '1' : '0');
+                      break;
+                  case 'progress-bar':
+                      const progressBar = modelViewer.querySelector('[slot="progress-bar"]');
+                      if (progressBar) {
+                          progressBar.style.display = enabled ? 'block' : 'none';
+                      }
+                      break;
+                  case 'interaction-prompt':
+                      // Interaction prompt functionality
+                      break;
+                  case 'debug-mode':
+                      // Debug mode functionality
+                      break;
+                  case 'performance-monitor':
+                      // Performance monitor functionality
+                      break;
+                  case 'stats-display':
+                      // Stats display functionality
+                      break;
+              }
+          }
+
+          function setupSliderValues() {
+              // Metalness slider
+              const metalnessSlider = document.getElementById('metalness');
+              const metalnessValue = document.getElementById('metalness-value');
+              if (metalnessSlider && metalnessValue) {
+                  metalnessSlider.addEventListener('input', function() {
+                      metalnessValue.textContent = parseFloat(this.value).toFixed(2);
+                      // Apply to model if possible
+                      updateMaterialProperty('metalness', this.value);
+                  });
+              }
+
+              // Roughness slider
+              const roughnessSlider = document.getElementById('roughness');
+              const roughnessValue = document.getElementById('roughness-value');
+              if (roughnessSlider && roughnessValue) {
+                  roughnessSlider.addEventListener('input', function() {
+                      roughnessValue.textContent = parseFloat(this.value).toFixed(2);
+                      updateMaterialProperty('roughness', this.value);
+                  });
+              }
+
+              // Opacity slider
+              const opacitySlider = document.getElementById('opacity');
+              const opacityValue = document.getElementById('opacity-value');
+              if (opacitySlider && opacityValue) {
+                  opacitySlider.addEventListener('input', function() {
+                      opacityValue.textContent = parseFloat(this.value).toFixed(2);
+                      updateMaterialProperty('opacity', this.value);
+                  });
+              }
+
+              // Playback speed slider
+              const speedSlider = document.getElementById('playback-speed');
+              const speedValue = document.getElementById('speed-value');
+              if (speedSlider && speedValue) {
+                  speedSlider.addEventListener('input', function() {
+                      speedValue.textContent = parseFloat(this.value).toFixed(1) + 'x';
+                      if (modelViewer && modelViewer.playbackRate !== undefined) {
+                          modelViewer.playbackRate = parseFloat(this.value);
+                      }
+                  });
+              }
+
+              // Exposure slider
+              const exposureSlider = document.getElementById('exposure');
+              const exposureValue = document.getElementById('exposure-value');
+              if (exposureSlider && exposureValue) {
+                  exposureSlider.addEventListener('input', function() {
+                      exposureValue.textContent = parseFloat(this.value).toFixed(1);
+                      modelViewer.setAttribute('exposure', this.value);
+                  });
+              }
+
+              // Gamma slider
+              const gammaSlider = document.getElementById('gamma');
+              const gammaValue = document.getElementById('gamma-value');
+              if (gammaSlider && gammaValue) {
+                  gammaSlider.addEventListener('input', function() {
+                      gammaValue.textContent = parseFloat(this.value).toFixed(1);
+                      // Gamma is handled by tone-mapping
+                      updateToneMapping();
+                  });
+              }
+
+              // Animation timeline
+              const timelineSlider = document.getElementById('timeline');
+              if (timelineSlider) {
+                  timelineSlider.addEventListener('input', function() {
+                      if (modelViewer && modelViewer.duration) {
+                          const time = (this.value / 100) * modelViewer.duration;
+                          modelViewer.currentTime = time;
+                          updateTimelineDisplay();
+                      }
+                  });
+              }
+          }
+
+          function updateMaterialProperty(property, value) {
+              // This would require accessing the model's materials
+              // For now, just show notification
+              showNotification(`${property} updated to ${value}`);
+          }
+
+          function updateToneMapping() {
+              const tonemappingSelect = document.getElementById('tonemapping');
+              if (tonemappingSelect) {
+                  modelViewer.setAttribute('tone-mapping', tonemappingSelect.value);
+              }
+          }
+
+          function updateTimelineDisplay() {
+              const currentTimeElement = document.getElementById('current-time');
+              const totalTimeElement = document.getElementById('total-time');
+
+              if (modelViewer && modelViewer.currentTime !== undefined && modelViewer.duration) {
+                  const current = formatTime(modelViewer.currentTime);
+                  const total = formatTime(modelViewer.duration);
+
+                  if (currentTimeElement) currentTimeElement.textContent = current;
+                  if (totalTimeElement) totalTimeElement.textContent = total;
+              }
+          }
+
+          function formatTime(seconds) {
+              const mins = Math.floor(seconds / 60);
+              const secs = Math.floor(seconds % 60);
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+          }
+
+          function setupTransformInputs() {
+              // Link scale inputs for uniform scaling
+              const scaleX = document.getElementById('scale-x');
+              const scaleY = document.getElementById('scale-y');
+              const scaleZ = document.getElementById('scale-z');
+
+              if (scaleX && scaleY && scaleZ) {
+                  function updateUniformScale() {
+                      const value = scaleX.value;
+                      if (value) {
+                          scaleY.value = value;
+                          scaleZ.value = value;
+                      }
+                  }
+
+                  scaleX.addEventListener('input', updateUniformScale);
+              }
+          }
+  
+        // Handle model load events
+        modelViewer.addEventListener('load', () => {
+            showNotification('Model loaded successfully!');
+            updateFileSelectionVisibility();
+            updateTimelineDisplay();
+
+            // Update animation controls if animations are available
+            if (modelViewer && modelViewer.duration > 0) {
+                showNotification('Animation available - use controls to play');
+            }
+        });
+  
+          modelViewer.addEventListener('error', (error) => {
+              hideProgressBar();
+              showNotification('Error loading model');
+              updateFileSelectionVisibility();
+          });
+      </script>
+  </body>
+  </html>
+  
