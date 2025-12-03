@@ -784,6 +784,11 @@
             margin-bottom: 0;
         }
 
+        /* Hide mobile toggle button by default (shown only on mobile) */
+        .tool-panel-toggle {
+            display: none;
+        }
+
         .transform-label {
             color: #cccccc;
             font-size: 11px;
@@ -856,108 +861,930 @@
             margin-bottom: 4px;
         }
   
-          @media only screen and (max-width: 768px) {
+          /* Comprehensive responsive design for ALL screen types */
+
+          /* Extra small phones (320px and below) */
+          @media only screen and (max-width: 320px) {
+              .app {
+                  overflow-x: hidden;
+              }
+
+              .header {
+                  height: auto;
+                  padding: 6px 10px;
+                  flex-direction: column;
+                  gap: 6px;
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  background: #2d2d30;
+                  z-index: 1000;
+              }
+
+              .main-content {
+                  margin-top: 60px;
+                  height: calc(100vh - 60px);
+              }
+
+              .model-container {
+                  position: relative;
+                  height: 100%;
+                  overflow: hidden;
+              }
+
+              .file-selection-container {
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  z-index: 1;
+              }
+
+              .file-selection-area {
+                  min-width: 180px;
+                  max-width: 90vw;
+                  padding: 16px 12px;
+                  margin: 12px;
+                  border-radius: 12px;
+              }
+
+              .nav-links {
+                  gap: 3px;
+                  justify-content: center;
+                  order: 2;
+                  flex-wrap: wrap;
+              }
+
+              .nav-link {
+                  font-size: 8px;
+                  padding: 2px 4px;
+                  min-width: auto;
+              }
+
+              .control-btn {
+                  font-size: 8px;
+                  padding: 4px 6px;
+                  min-height: 28px;
+              }
+
+              .tool-panel-toggle {
+                  width: 48px;
+                  height: 48px;
+                  bottom: 16px;
+                  right: 16px;
+                  font-size: 16px;
+                  z-index: 1001;
+              }
+
+              .select-file-btn {
+                  padding: 12px 18px;
+                  font-size: 12px;
+                  min-height: 40px;
+                  width: 100%;
+                  max-width: 200px;
+              }
+
+              .file-icon {
+                  font-size: 24px;
+                  margin-bottom: 10px;
+              }
+
+              .tool-panel {
+                  padding: 12px;
+                  max-height: 70vh;
+                  overflow-y: auto;
+              }
+
+              .tool-section {
+                  padding: 12px;
+                  margin-bottom: 12px;
+              }
+
+              .tool-title {
+                  font-size: 12px;
+              }
+
+              .tool-btn {
+                  font-size: 10px;
+                  padding: 8px 10px;
+                  min-height: 36px;
+              }
+
+              .btn {
+                  font-size: 10px;
+                  padding: 10px 12px;
+                  min-height: 36px;
+              }
+
+              .transform-input {
+                  font-size: 12px;
+                  padding: 6px 8px;
+                  min-height: 32px;
+              }
+
+              .control-label {
+                  font-size: 11px;
+              }
+
+              .control-label input[type="checkbox"] {
+                  width: 14px;
+                  height: 14px;
+              }
+
+              .transform-inputs {
+                  flex-direction: column;
+                  gap: 4px;
+              }
+
+              .transform-input {
+                  width: 100%;
+              }
+
+              .checkbox-grid {
+                  grid-template-columns: 1fr;
+                  gap: 6px;
+              }
+
+              .tool-buttons-grid {
+                  grid-template-columns: 1fr;
+                  gap: 6px;
+              }
+
+              .btn-grid {
+                  grid-template-columns: 1fr;
+                  gap: 6px;
+              }
+
+              .options-grid {
+                  grid-template-columns: 1fr;
+                  gap: 6px;
+              }
+
+              .notification {
+                  bottom: 70px;
+                  left: 10px;
+                  right: 10px;
+                  font-size: 12px;
+                  padding: 10px 12px;
+              }
+          }
+
+          /* Small phones (321px to 480px) */
+          @media only screen and (min-width: 321px) and (max-width: 480px) {
+              .app {
+                  overflow-x: hidden;
+              }
+
               .header {
                   height: auto;
                   padding: 8px 12px;
                   flex-direction: column;
                   gap: 8px;
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  background: #2d2d30;
+                  z-index: 1000;
               }
-  
+
+              .main-content {
+                  margin-top: 80px;
+                  height: calc(100vh - 80px);
+              }
+
+              .model-container {
+                  position: relative;
+                  height: 100%;
+                  overflow: hidden;
+              }
+
+              .file-selection-container {
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  z-index: 1;
+              }
+
+              .file-selection-area {
+                  max-width: 90vw;
+              }
+
               .nav-links {
-                  gap: 6px;
+                  gap: 4px;
                   justify-content: center;
                   order: 2;
+                  flex-wrap: wrap;
               }
-  
+
               .header-controls {
                   order: 1;
                   justify-content: center;
-                  gap: 6px;
+                  gap: 4px;
+                  flex-wrap: wrap;
               }
-  
+
               .nav-link {
-                  font-size: 10px;
-                  padding: 4px 6px;
+                  font-size: 9px;
+                  padding: 3px 5px;
+                  min-width: auto;
               }
-  
+
               .control-btn {
-                  font-size: 10px;
-                  padding: 4px 8px;
+                  font-size: 9px;
+                  padding: 6px 10px;
+                  min-height: 32px;
               }
-  
+
+              .main-content {
+                  flex-direction: column;
+                  height: calc(100vh - 80px);
+                  position: relative;
+              }
+
+              .model-container {
+                  flex: 1;
+                  min-height: 50vh;
+                  position: relative;
+              }
+
+              .tool-panel {
+                  position: fixed;
+                  top: 80px; /* Below fixed header */
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  width: 100%;
+                  height: auto;
+                  max-height: calc(100vh - 80px);
+                  min-width: auto;
+                  max-width: none;
+                  background: #323232;
+                  border-left: none;
+                  border-top: 1px solid #404040;
+                  transform: translateY(100%);
+                  transition: transform 0.3s ease;
+                  z-index: 1002;
+                  overflow-y: auto;
+                  padding: 16px;
+              }
+
+              .tool-panel.open {
+                  transform: translateY(0);
+              }
+
+              .tool-panel-toggle {
+                  display: block;
+                  position: fixed;
+                  bottom: 20px;
+                  right: 20px;
+                  width: 56px;
+                  height: 56px;
+                  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+                  border: none;
+                  border-radius: 50%;
+                  color: white;
+                  font-size: 18px;
+                  cursor: pointer;
+                  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.4);
+                  z-index: 1001;
+                  transition: all 0.3s ease;
+              }
+
+              .tool-panel-toggle:hover {
+                  transform: scale(1.1);
+                  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.5);
+              }
+
+              .tool-title {
+                  font-size: 14px;
+                  padding-left: 12px;
+                  border-left: 4px solid #0066cc;
+              }
+
+              .tool-btn {
+                  font-size: 12px;
+                  padding: 10px 12px;
+                  min-height: 44px;
+                  justify-content: flex-start;
+              }
+
+              .btn {
+                  font-size: 12px;
+                  padding: 12px 14px;
+                  min-height: 44px;
+              }
+
+              .control-label {
+                  font-size: 12px;
+              }
+
+              .control-label input[type="checkbox"] {
+                  width: 16px;
+                  height: 16px;
+              }
+
+              .control-label select {
+                  font-size: 12px;
+                  padding: 6px 8px;
+              }
+
+              .file-selection-area {
+                  min-width: 200px;
+                  padding: 20px 16px;
+                  margin: 16px;
+                  border-radius: 16px;
+              }
+
+              .select-file-btn {
+                  padding: 16px 24px;
+                  font-size: 14px;
+                  min-height: 48px;
+                  width: 100%;
+                  max-width: 280px;
+              }
+
+              .file-icon {
+                  font-size: 28px;
+                  margin-bottom: 12px;
+              }
+
+              .file-info {
+                  font-size: 12px;
+                  text-align: center;
+                  max-width: 250px;
+                  margin: 0 auto;
+              }
+
+              .transform-inputs {
+                  flex-direction: column;
+                  gap: 6px;
+                  width: 100%;
+              }
+
+              .transform-input {
+                  width: 100%;
+                  min-height: 36px;
+                  font-size: 14px;
+              }
+
+              .transform-label {
+                  min-width: 80px;
+                  font-size: 12px;
+              }
+
+              .checkbox-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
+
+              .tool-buttons-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
+
+              .btn-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
+
+              .tool-section {
+                  padding: 16px;
+                  margin-bottom: 16px;
+                  border-radius: 12px;
+              }
+
+              .options-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
+
+              .option-item {
+                  padding: 10px 12px;
+                  border-radius: 8px;
+              }
+
+              .notification {
+                  bottom: 80px;
+                  left: 16px;
+                  right: 16px;
+                  padding: 12px 16px;
+                  border-radius: 8px;
+                  font-size: 14px;
+              }
+          }
+
+          /* Large phones/small tablets (481px to 640px) */
+          @media only screen and (min-width: 481px) and (max-width: 640px) {
+              .tool-panel-toggle {
+                  display: none !important;
+              }
+
+              .tool-panel {
+                  width: 260px;
+                  min-width: 260px;
+                  max-width: 260px;
+                  padding: 14px;
+              }
+
+              .tool-section {
+                  padding: 14px;
+                  margin-bottom: 16px;
+              }
+
+              .tool-title {
+                  font-size: 13px;
+              }
+
+              .tool-btn {
+                  font-size: 11px;
+                  padding: 8px 12px;
+                  min-height: 38px;
+              }
+
+              .file-selection-area {
+                  min-width: 240px;
+                  padding: 18px;
+                  margin: 18px;
+              }
+
+              .select-file-btn {
+                  padding: 14px 22px;
+                  font-size: 14px;
+              }
+          }
+
+          /* Tablets (641px to 768px) */
+          @media only screen and (min-width: 641px) and (max-width: 768px) {
+              .tool-panel-toggle {
+                  display: none !important;
+              }
+
               .tool-panel {
                   width: 280px;
                   min-width: 280px;
                   max-width: 280px;
-                  padding: 12px;
-              }
-  
-              .tool-title {
-                  font-size: 13px;
-              }
-  
-              .tool-btn {
-                  font-size: 11px;
-                  padding: 6px 10px;
-              }
-  
-              .main-content {
-                  height: calc(100vh - 70px);
-              }
-  
-              .file-selection-area {
-                  min-width: 220px;
                   padding: 16px;
+              }
+
+              .tool-section {
+                  padding: 16px;
+                  margin-bottom: 18px;
+              }
+
+              .tool-title {
+                  font-size: 14px;
+              }
+
+              .tool-btn {
+                  font-size: 12px;
+                  padding: 9px 14px;
+                  min-height: 40px;
+              }
+
+              .file-selection-area {
+                  min-width: 280px;
+                  padding: 20px;
                   margin: 20px;
               }
-  
+
               .select-file-btn {
-                  padding: 12px 20px;
-                  font-size: 13px;
+                  padding: 15px 24px;
+                  font-size: 14px;
               }
-  
+          }
+              .header {
+                  height: auto;
+                  padding: 8px 16px;
+                  flex-direction: column;
+                  gap: 12px;
+              }
+
+              .nav-links {
+                  gap: 8px;
+                  justify-content: center;
+                  order: 2;
+                  flex-wrap: wrap;
+              }
+
+              .header-controls {
+                  order: 1;
+                  justify-content: center;
+                  gap: 8px;
+              }
+
+              .nav-link {
+                  font-size: 11px;
+                  padding: 4px 8px;
+              }
+
+              .control-btn {
+                  font-size: 11px;
+                  padding: 6px 12px;
+              }
+
+              .tool-panel {
+                  width: 320px;
+                  min-width: 320px;
+                  max-width: 320px;
+                  padding: 16px;
+              }
+
+              .tool-title {
+                  font-size: 14px;
+              }
+
+              .tool-btn {
+                  font-size: 12px;
+                  padding: 8px 12px;
+                  min-height: 40px;
+              }
+
+              .main-content {
+                  height: calc(100vh - 90px);
+              }
+
+              .file-selection-area {
+                  min-width: 280px;
+                  padding: 24px;
+                  margin: 24px;
+              }
+
+              .select-file-btn {
+                  padding: 14px 24px;
+                  font-size: 14px;
+              }
+
               .file-icon {
-                  font-size: 24px;
+                  font-size: 32px;
               }
-  
-            .file-info {
-                font-size: 11px;
-            }
 
-            .transform-inputs {
-                flex-direction: column;
-                gap: 2px;
-            }
+              .file-info {
+                  font-size: 12px;
+              }
 
-            .transform-input {
-                width: 100%;
-            }
+              .transform-inputs {
+                  flex-direction: column;
+                  gap: 4px;
+              }
 
-            .checkbox-grid {
-                grid-template-columns: 1fr;
-            }
+              .transform-input {
+                  width: 100%;
+              }
 
-            .tool-buttons-grid {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
+              .checkbox-grid {
+                  grid-template-columns: 1fr;
+              }
 
-            .btn-grid {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
+              .tool-buttons-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
 
-            .tool-section {
-                padding: 12px;
-                margin-bottom: 20px;
-            }
+              .btn-grid {
+                  grid-template-columns: 1fr;
+                  gap: 8px;
+              }
 
-            .control-btn {
-                padding: 6px 12px;
-                font-size: 10px;
-            }
-        }
+              .tool-section {
+                  padding: 16px;
+                  margin-bottom: 20px;
+              }
+          
+
+          /* Small laptops (769px to 1024px) */
+          @media only screen and (min-width: 769px) and (max-width: 1024px) {
+              .tool-panel {
+                  width: 300px;
+                  min-width: 300px;
+                  max-width: 300px;
+                  padding: 18px;
+              }
+
+              .tool-section {
+                  padding: 16px;
+                  margin-bottom: 20px;
+              }
+
+              .tool-title {
+                  font-size: 14px;
+              }
+
+              .tool-btn {
+                  font-size: 12px;
+                  padding: 9px 14px;
+                  min-height: 42px;
+              }
+
+              .btn {
+                  font-size: 12px;
+                  padding: 11px 15px;
+                  min-height: 40px;
+              }
+
+              .file-selection-area {
+                  min-width: 320px;
+                  padding: 24px;
+                  margin: 24px;
+              }
+
+              .select-file-btn {
+                  padding: 16px 28px;
+                  font-size: 15px;
+              }
+          }
+
+          /* Large laptops/desktops (1025px to 1366px) */
+          @media only screen and (min-width: 1025px) and (max-width: 1366px) {
+              .tool-panel {
+                  width: 320px;
+                  min-width: 320px;
+                  max-width: 320px;
+                  padding: 20px;
+              }
+
+              .tool-section {
+                  padding: 18px;
+                  margin-bottom: 22px;
+              }
+
+              .tool-title {
+                  font-size: 15px;
+              }
+
+              .tool-btn {
+                  font-size: 13px;
+                  padding: 10px 16px;
+                  min-height: 44px;
+              }
+
+              .btn {
+                  font-size: 13px;
+                  padding: 12px 16px;
+                  min-height: 42px;
+              }
+
+              .file-selection-area {
+                  min-width: 360px;
+                  padding: 28px;
+                  margin: 28px;
+              }
+
+              .select-file-btn {
+                  padding: 18px 32px;
+                  font-size: 16px;
+              }
+          }
+
+          /* Large screens/4K displays (1367px to 1920px) */
+          @media only screen and (min-width: 1367px) and (max-width: 1920px) {
+              .tool-panel {
+                  width: 350px;
+                  min-width: 350px;
+                  max-width: 350px;
+                  padding: 24px;
+              }
+
+              .tool-section {
+                  padding: 20px;
+                  margin-bottom: 24px;
+              }
+
+              .tool-title {
+                  font-size: 16px;
+              }
+
+              .tool-btn {
+                  font-size: 14px;
+                  padding: 11px 18px;
+                  min-height: 46px;
+              }
+
+              .btn {
+                  font-size: 14px;
+                  padding: 13px 18px;
+                  min-height: 44px;
+              }
+
+              .file-selection-area {
+                  min-width: 400px;
+                  padding: 32px;
+                  margin: 32px;
+              }
+
+              .select-file-btn {
+                  padding: 20px 36px;
+                  font-size: 17px;
+                  max-width: 320px;
+              }
+
+              .nav-link {
+                  font-size: 14px;
+                  padding: 8px 16px;
+              }
+
+              .control-btn {
+                  font-size: 13px;
+                  padding: 10px 18px;
+              }
+          }
+
+          /* Ultra-wide/4K+ displays (1921px and above) */
+          @media only screen and (min-width: 1921px) {
+              .tool-panel {
+                  width: 380px;
+                  min-width: 380px;
+                  max-width: 380px;
+                  padding: 28px;
+              }
+
+              .tool-section {
+                  padding: 24px;
+                  margin-bottom: 28px;
+              }
+
+              .tool-title {
+                  font-size: 17px;
+              }
+
+              .tool-btn {
+                  font-size: 15px;
+                  padding: 12px 20px;
+                  min-height: 48px;
+              }
+
+              .btn {
+                  font-size: 15px;
+                  padding: 14px 20px;
+                  min-height: 46px;
+              }
+
+              .file-selection-area {
+                  min-width: 450px;
+                  padding: 36px;
+                  margin: 36px;
+              }
+
+              .select-file-btn {
+                  padding: 22px 40px;
+                  font-size: 18px;
+                  max-width: 350px;
+              }
+
+              .nav-link {
+                  font-size: 15px;
+                  padding: 9px 18px;
+              }
+
+              .control-btn {
+                  font-size: 14px;
+                  padding: 11px 20px;
+              }
+          }
+
+          /* Portrait orientation adjustments for mobile devices */
+          @media only screen and (max-width: 768px) and (orientation: portrait) {
+              .model-container {
+                  height: 60vh;
+              }
+
+              .tool-panel {
+                  max-height: 40vh;
+              }
+
+              .file-selection-area {
+                  margin: 16px auto;
+                  max-width: 90vw;
+              }
+          }
+
+          /* Landscape orientation adjustments for mobile devices */
+          @media only screen and (max-width: 768px) and (orientation: landscape) {
+              .header {
+                  height: 50px;
+                  padding: 6px 12px;
+              }
+
+              .model-container {
+                  height: 50vh;
+              }
+
+              .tool-panel {
+                  max-height: 50vh;
+              }
+
+              .tool-panel-toggle {
+                  bottom: 8px;
+                  right: 8px;
+                  width: 44px;
+                  height: 44px;
+                  font-size: 14px;
+              }
+
+              .nav-link {
+                  font-size: 9px;
+                  padding: 2px 6px;
+              }
+
+              .control-btn {
+                  font-size: 9px;
+                  padding: 4px 8px;
+              }
+          }
+
+          /* High DPI/retina displays */
+          @media only screen and (-webkit-min-device-pixel-ratio: 2),
+                 only screen and (min-resolution: 192dpi) {
+              .tool-panel-toggle {
+                  border-radius: 50%;
+                  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
+              }
+
+              .select-file-btn,
+              .tool-btn,
+              .btn {
+                  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+              }
+          }
+
+          /* Touch devices */
+          @media only screen and (hover: none) and (pointer: coarse) {
+              .tool-panel-toggle {
+                  width: 60px;
+                  height: 60px;
+                  font-size: 20px;
+                  z-index: 1001;
+              }
+
+              .tool-btn,
+              .btn,
+              .select-file-btn {
+                  min-height: 48px;
+                  padding: 14px 20px;
+                  touch-action: manipulation; /* Prevents double-tap zoom */
+              }
+
+              .control-label input[type="checkbox"] {
+                  width: 18px;
+                  height: 18px;
+                  touch-action: manipulation;
+              }
+
+              .transform-input {
+                  font-size: 16px; /* Prevents zoom on iOS */
+                  padding: 8px 10px;
+                  touch-action: manipulation;
+              }
+
+              .nav-link,
+              .control-btn {
+                  touch-action: manipulation;
+                  min-height: 44px;
+                  padding: 12px 16px;
+              }
+
+              /* Prevent text selection on touch */
+              .tool-panel,
+              .header,
+              .file-selection-area {
+                  -webkit-user-select: none;
+                  -moz-user-select: none;
+                  -ms-user-select: none;
+                  user-select: none;
+              }
+
+              /* Allow text selection in inputs */
+              input, select, textarea {
+                  -webkit-user-select: text;
+                  -moz-user-select: text;
+                  -ms-user-select: text;
+                  user-select: text;
+              }
+          }
+
+          /* Print styles (for completeness) */
+          @media print {
+              .tool-panel,
+              .tool-panel-toggle,
+              .header {
+                  display: none !important;
+              }
+
+              .model-container {
+                  width: 100%;
+                  height: 100vh;
+              }
+          }
       </style>
   </head>
   <body>
@@ -1003,7 +1830,7 @@
                     <button slot="ar-button" id="ar-button">View in your space</button>
                     <div id="ar-prompt"></div>
                 </model-viewer>
-  
+
                   <div class="file-selection-container">
                       <div class="file-selection-area">
                           <div class="file-icon">📁</div>
@@ -1014,8 +1841,13 @@
                       </div>
                   </div>
               </div>
-  
-                <div class="tool-panel">
+
+                <!-- Mobile Tool Panel Toggle Button -->
+                <button class="tool-panel-toggle" id="tool-panel-toggle" onclick="toggleToolPanel()">
+                    ⚙️
+                </button>
+
+                <div class="tool-panel" id="tool-panel">
                     <!-- 1. Model Management -->
                     <div class="tool-section">
                         <h3 class="tool-title">📁 Model Management</h3>
@@ -1583,6 +2415,81 @@
                   notification.classList.remove('show');
               }, 3000);
           }
+
+          // Mobile tool panel toggle functionality
+          function toggleToolPanel() {
+              const toolPanel = document.getElementById('tool-panel');
+              const toggleBtn = document.getElementById('tool-panel-toggle');
+
+              if (toolPanel && toggleBtn) {
+                  toolPanel.classList.toggle('open');
+
+                  // Update toggle button icon based on panel state
+                  if (toolPanel.classList.contains('open')) {
+                      toggleBtn.innerHTML = '✕';
+                      toggleBtn.style.background = 'linear-gradient(135deg, #e24a4a 0%, #bd3535 100%)';
+                  } else {
+                      toggleBtn.innerHTML = '⚙️';
+                      toggleBtn.style.background = 'linear-gradient(135deg, #4a90e2 0%, #357abd 100%)';
+                  }
+              }
+          }
+
+          // Close tool panel when clicking outside on mobile
+          document.addEventListener('click', function(event) {
+              const toolPanel = document.getElementById('tool-panel');
+              const toggleBtn = document.getElementById('tool-panel-toggle');
+
+              if (window.innerWidth <= 640 &&
+                  toolPanel &&
+                  toggleBtn &&
+                  toolPanel.classList.contains('open') &&
+                  !toolPanel.contains(event.target) &&
+                  event.target !== toggleBtn) {
+                  toggleToolPanel();
+              }
+          });
+
+          // Handle screen size and orientation changes
+          function handleScreenChange() {
+              const toolPanel = document.getElementById('tool-panel');
+              const toggleBtn = document.getElementById('tool-panel-toggle');
+              const width = window.innerWidth;
+              const height = window.innerHeight;
+              const isLandscape = width > height;
+              const isMobile = width <= 640;
+
+              // Auto-close panel on screen resize if switching from mobile to tablet/desktop
+              if (!isMobile && toolPanel && toolPanel.classList.contains('open')) {
+                  toggleToolPanel();
+              }
+
+              // Update toggle button visibility
+              if (toggleBtn) {
+                  toggleBtn.style.display = isMobile ? 'block' : 'none';
+              }
+
+              // Adjust panel height for landscape mobile
+              if (toolPanel && isMobile && isLandscape) {
+                  toolPanel.style.maxHeight = '45vh';
+              } else if (toolPanel && isMobile) {
+                  toolPanel.style.maxHeight = '60vh';
+              }
+
+              console.log(`Screen: ${width}x${height}, Mobile: ${isMobile}, Landscape: ${isLandscape}`);
+          }
+
+          // Listen for screen size changes
+          window.addEventListener('resize', handleScreenChange);
+          window.addEventListener('orientationchange', function() {
+              // Delay to allow orientation change to complete
+              setTimeout(handleScreenChange, 100);
+          });
+
+          // Initial screen check
+          document.addEventListener('DOMContentLoaded', function() {
+              handleScreenChange();
+          });
   
           // Drag and drop functionality
           function setupDragAndDrop() {
